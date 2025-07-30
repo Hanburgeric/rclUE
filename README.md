@@ -1,3 +1,48 @@
+# rclUE for Windows
+
+This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2 Unreal Engine integration plugin developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
+
+The intent behind this repository is to allow 
+[link](https://github.com/rapyuta-robotics/rclUE/issues/94)
+
+### Missing libraries
+
+In a fresh binary installation of ROS 2 Humble on Windows, three libraries will be missing:
+- `pcl_msgs`
+- `rclc`
+- `ue_msgs`
+
+As such, it is up to the user to build these libraries and place these libraries in their appropriate folders (i.e. bin, include, and lib).
+
+This step can be quite frustrating, so a step-by-step guide has been prepared below.
+
+1. First, ensure that Python has been installed on your system. If you've followed the official ROS 2 Humble installation guide, then this will already ahve been done for you. If not, download a release from [here](https://www.python.org/downloads/). The pre-compiled libraries have been built with Python 3.8 (the version listed on the official installation guide).
+2. pip install colcon-common-extensions
+3. mkdir <ws_directory>/src
+4. cd <ws_directory>/src
+5. git clone pcl_msgs
+6. git clone rclc (checkout humble)
+8. git clone ue_msgs
+
+#### Troubleshooting
+
+In all likelihood, your `colcon build` command will fail. This will likely be due to rclc.
+
+In your worskspace directory, if you check log\build_<timestamp>\rclc\stdout_stderr.log and the final messages look something like:
+test_action_server.obj : error LNK2019: unresolved external symbol rclc_executor_add_action_server referenced in function "private: virtual void __cdecl Test_rclc_action_server_Test::TestBody(void)" (?TestBody@Test_rclc_action_server_Test@@EEAAXXZ) [C:\ros2\rclUE_ws\build\rclc\rclc_test.vcxproj]
+test_action_client.obj : error LNK2019: unresolved external symbol rclc_executor_add_action_client referenced in function "private: virtual void __cdecl Test_rclc_action_client_Test::TestBody(void)" (?TestBody@Test_rclc_action_client_Test@@EEAAXXZ) [C:\ros2\rclUE_ws\build\rclc\rclc_test.vcxproj]
+C:\ros2\rclUE_ws\build\rclc\Release\rclc_test.exe : fatal error LNK1120: 2 unresolved externals [C:\ros2\rclUE_ws\build\rclc\rclc_test.vcxproj]
+
+Then you may apply the following fix:
+1. open <ws_dir>\src\rclc\rclc\include\rclc\executor.h
+2. find the function with the name `rclc_executor_add_action_client`.
+3. You will find that unlike other functions, it has not been marked with the RCLC_PUBLIC macro. Add it before the function (above/before rcl_ret_t).
+4. repeat 2~3 with `rclc_executor_add_action_server`.
+
+If all is right, then your `colcon build` command should now work. In high likelihood, it will inform you that `rclc_examples` has failed to build, but this is expected (the code is littered with Linux-specific code). We do not require anything from this library, so feel free to ignore this message.
+
+copy/paste the content in the bin/include/lib folders from pcl_msgs/rclc/ue_msgs to plugindir/Win64ThirdParty/ros.
+
 # Basic information
 
 ## Online documentation
