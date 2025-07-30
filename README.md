@@ -1,9 +1,19 @@
-# rclUE for Windows
+# rclUE
 
-This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2 Unreal Engine integration plugin developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
+This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2—Unreal Engine integration plugin originally developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
 
-The intent behind this repository is to allow 
-[link](https://github.com/rapyuta-robotics/rclUE/issues/94)
+The goal of this fork is to enable usage of the plugin on Windows, despite the current limitations of ROS 2 support on said platform. While ROS 2 is best supported on Linux, there are valid scenarios—such as Unreal Engine features that are exclusive to or better supported on Windows (as noted [here](https://github.com/rapyuta-robotics/rclUE/issues/94))—where a Windows-compatible build of rclUE would be desirable.
+
+As someone personally facing these constraints and unable to find an existing public port, I've resorted to adapting the plugin myself. This repository shares the result, in the hopes that it will benefit others with similar needs.
+
+## Development Environment
+
+As mentioned, this fork was created with personal use in mind; as such, I've not really taken the time to consider various development environments.
+
+However, the very end of this document ??? the process of creating your own port of rclUE, so resort to that if the plugin refuses to compile.
+
+## Known problems
+
 
 ### Missing libraries
 
