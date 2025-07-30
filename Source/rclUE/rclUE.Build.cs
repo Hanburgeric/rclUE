@@ -13,6 +13,11 @@ public class rclUE : ModuleRules
 		get { return Path.Combine(ModuleDirectory, "../../", "ThirdParty", "ros"); }
 	}
 
+	private string Win64RosPath
+	{
+		get { return Path.Combine(ModuleDirectory, "..", "..", "Win64ThirdParty", "ros"); }
+	}
+
 	private void AddModule(string InModulePath, bool bInCopySharedLibsToOutputDir = false)
 	{
         string includePath = Path.Combine(InModulePath, "include");
@@ -58,7 +63,65 @@ public class rclUE : ModuleRules
         }
 	}
 
-	public rclUE(ReadOnlyTargetRules Target) : base(Target)
+	private void AddWin64Module(string InModulePath, bool bInCopySharedLibsToOutputDir = false)
+	{
+        // Includes
+        string includePath = Path.Combine(InModulePath, "include");
+        if (Directory.Exists(includePath))
+        {
+            PublicIncludePaths.Add(includePath);
+            Console.WriteLine("== Add [rclUE] include:");
+
+            var includes = Directory.EnumerateDirectories(includePath);
+            foreach (var include in includes)
+            {
+                Console.WriteLine(include);
+                PublicIncludePaths.Add(include);
+            }
+        }
+
+        // Import libraries; no need to add public/private runtime library paths here,
+        // as this is irrelevant on Windows (i.e. Windows executables do not have an rpath analogue)
+        string libPath = Path.Combine(InModulePath, "lib");
+        if (Directory.Exists(libPath))
+        {
+            Console.WriteLine("== Add [rclUE] libs:");
+
+            var libs = Directory.EnumerateFiles(libPath, "*.lib", SearchOption.TopDirectoryOnly);
+            foreach (var lib in libs)
+            {
+                Console.WriteLine(lib);
+                PublicAdditionalLibraries.Add(lib);
+            }
+        }
+
+        // Dynamic link libraries
+        string binPath = Path.Combine(InModulePath, "bin");
+        if (Directory.Exists(binPath))
+        {
+            Console.WriteLine("== Add [rclUE] dlls:");
+
+            var dlls = Directory.EnumerateFiles(binPath, "*.dll", SearchOption.TopDirectoryOnly);
+            foreach (var dll in dlls)
+            {
+                // Delay-load such that symbols are resolved only on first use,
+                // akin to how dlopen behaves on Linux
+                PublicDelayLoadDLLs.Add(Path.GetFileName(dll));
+                Console.WriteLine(dll);
+
+                if (bInCopySharedLibsToOutputDir)
+                {
+                    RuntimeDependencies.Add(Path.Combine("$(TargetOutputDir)", Path.GetFileName(dll)), dll, StagedFileType.NonUFS);
+                }
+                else
+                {
+                    RuntimeDependencies.Add(dll, StagedFileType.NonUFS);
+                }
+            }
+        }
+    }
+
+    public rclUE(ReadOnlyTargetRules Target) : base(Target)
 	{
 		var envVars = Environment.GetEnvironmentVariables();
 		string ldLibraryPathKey = "LD_LIBRARY_PATH";
@@ -68,7 +131,7 @@ public class rclUE : ModuleRules
 			Console.WriteLine(string.Format("[rclUE] LD_LIBRARY_PATH: {0}", envVars[ldLibraryPathKey]));
 		}
 
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		CppStandard = CppStandardVersion.Latest;
 		if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
@@ -76,9 +139,13 @@ public class rclUE : ModuleRules
 			// => Need to copy them TargetOutputDir
 			AddModule(RosPath, true);
 		}
+		else if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+            AddWin64Module(Win64RosPath, true);
+		}
 
-		PublicIncludePaths.Add(Path.Combine(ModuleDirectory,"Public"));
-		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory,"Private"));
+		PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
 
 		PublicDependencyModuleNames.AddRange(
 			new string[]
