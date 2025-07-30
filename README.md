@@ -1,40 +1,126 @@
 # rclUE
 
-This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2—Unreal Engine integration plugin originally developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
+This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2–Unreal Engine integration plugin originally developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
 
-The goal of this fork is to enable usage of the plugin on Windows, despite the current limitations of ROS 2 support on said platform. While ROS 2 is best supported on Linux, there are valid scenarios—such as Unreal Engine features that are exclusive to or better supported on Windows (as noted [here](https://github.com/rapyuta-robotics/rclUE/issues/94))—where a Windows-compatible build of rclUE would be desirable.
+The goal of this fork is to enable the use of the plugin on Windows, despite the limited support for ROS 2 support on the platform. While ROS 2 is certainly more robust on Linux, there may be some situations (e.g. a certain feature on Unreal Engine is better supported on or downright exclusive to Windows) where a Windows-compatible build of rclUE would be desirable or even necessary.
 
-As someone personally facing these constraints and unable to find an existing public port, I've resorted to adapting the plugin myself. This repository shares the result, in the hopes that it will benefit others with similar needs.
+Given the lack of public solutions, I have adapted the plugin for my own development needs and am sharing the results in the hope that they help others facing similar constraints.
 
-## Development Environment
+## System Requirements
 
-As mentioned, this fork was created with personal use in mind; as such, I've not really taken the time to consider various development environments.
+This fork was developed on a single toolchain:
+- **Operating System**: Windows 11
+- **Unreal Engine**: Unreal Engine 5.5.4
+- **ROS 2**: Humble Hawksbill ([Binary Installation](https://docs.ros.org/en/humble/Installation/Windows-Install-Binary.html))
+- **Compiler/IDE**: Visual Studio 2022
 
-However, the very end of this document ??? the process of creating your own port of rclUE, so resort to that if the plugin refuses to compile.
+Future updates will generally track the upstream `UE5.5_devel_humble` branch.
 
-## Known problems
+Consequently, if you are working with...
+- a different version of Windows,
+- a different version of Unreal Engine, or
+- a different ROS 2 distribution or installation method,
 
+the plugin may not compile out of the box, primarily because it relies on pre-compiled binaries located in the `ThirdParty/Win64` folder.
 
-### Missing libraries
+If that is the case, you will need to perform your own port. The guide below describes the process I followed; while it may not be a 1:1 walkthrough for every environment, it should provide a solid foundation.
 
-In a fresh binary installation of ROS 2 Humble on Windows, three libraries will be missing:
+If you encounter an issue that is not covered, feel free to open an issue, start a discussion thread, or submit a pull request. I will do my best to help.
+
+## Porting for Other Environments
+
+### Prerequisites
+
+Before you begin, make sure the following tools are installed:
+- Your desired version of Unreal Engine
+- Your desired distribution of ROS 2 (binary or source)
+- Git
+- Python 3.x
+- Visual Studio 2022 (with the `x64 Native Tools` command prompt)
+
+#### 1. Clone the upstream branch that most closely matches your environment
+```bash
+git clone https://github.com/rapyuta-robotics/rclUE.git
+cd rclUE
+git checkout UE5.5_devel_humble
+```
+
+#### 2. Navigate to the `ThirdParty` folder
+```bash
+cd ThirdParty
+```
+
+#### 3. Create a directory tree for the Windows binaries
+```bash
+mkdir Win64\ros
+cd Win64\ros
+mkdir bin include lib
+```
+
+#### 4. Locate your ROS 2 installation
+```bash
+cd C:\dev\ros2_humble
+```
+
+#### 5. Copy core ROS 2 artifacts into the plugin
+Move all relevant...
+- `.dll` files from `bin`,
+- include folders from `include`, and
+- `.lib` files from `lib`
+
+into the matching folders created in **Step 3**. You may choose to copy the entire `bin`, `include`, and `lib` directories for convenience, or copy only the files that exist in the Linux reference layout (`ThirdParty/ros`) for a minimal footprint approach.
+
+Additionally, add `yaml.bin` from `bin` and `yaml.dll` from `lib`–they are not present in the upstream plugin but are required for a successful Windows build.
+
+Note that ROS 2 Humble's headers often nest package directories twifce (e.g. `nav_msgs/nav_msgs/...` instead of `nav_msgs/...`); preserve this folder structure exactly.
+
+#### 6. Build and add any missing libraries
+Depending on your ROS 2 installation, some packages expected by the plugin may be absent. In the case of Humble, the usual suspects are:
 - `pcl_msgs`
 - `rclc`
 - `ue_msgs`
 
-As such, it is up to the user to build these libraries and place these libraries in their appropriate folders (i.e. bin, include, and lib).
+You must build these packages from source and copy their artifacts into the matching folders created in **Step 3**.
 
-This step can be quite frustrating, so a step-by-step guide has been prepared below.
+1. Ensure Python is available; this is likely trivial if you've installed ROS 2. Otherwise, install it from the [official site](https://www.python.org/downloads/).
+2. Open an `x64 Native Tools Command Prompt for VS 2022` with administrator rights.
+3. Install Colcon and some common extensions.
+```bash
+pip install colcon-common-extensions
+```
+4. Create a workspace and clone the required repositories.
+```bash
+mkdir rclUE_ws\src
+cd rclUE_ws\src
 
-1. First, ensure that Python has been installed on your system. If you've followed the official ROS 2 Humble installation guide, then this will already ahve been done for you. If not, download a release from [here](https://www.python.org/downloads/). The pre-compiled libraries have been built with Python 3.8 (the version listed on the official installation guide).
-2. pip install colcon-common-extensions
-3. mkdir <ws_directory>/src
-4. cd <ws_directory>/src
-5. git clone pcl_msgs
-6. git clone rclc (checkout humble)
-8. git clone ue_msgs
+git clone https://github.com/ros-perception/perception_pcl.git
+git clone https://github.com/ros2/rclc.git
+git clone https://github.com/rapyuta-robotics/UE_msgs.git
 
-#### Troubleshooting
+# Make sure to checkout the correct branch
+cd rclc
+git checkout humble
+cd ..
+```
+5. Build the workspace
+```bash
+# Make sure you are in the workspace directory (e.g. rclUE_ws), NOT the src directory
+colcon build
+```
+On success, an `install` directory containing `bin`, `include`, and `lib` sub-directories for each of your repositories will be made.
+(Can you create folder-like layout)?
+6. Copy the build artifacts into matching folders plugin, just as you did before
+
+#### Troubleshooting (WIP)
+
+There is a possibility for the `colcon build` command to fail. This is more likely to be true when building the humble branch of rclc (not sure about the others).
+
+To check the error, open the stdout_stderr.log file in the the folder of the library that failed to build. For example:
+```bash
+<rclUE_ws_DIRECTORY>\src\rclc\log\build_<TIMESTAMP>\rclc\stdout_stderr.log
+```
+
+There is a high likelihood that your `colcon build` command will fail, especially when building rclc.
 
 In all likelihood, your `colcon build` command will fail. This will likely be due to rclc.
 
@@ -53,114 +139,26 @@ If all is right, then your `colcon build` command should now work. In high likel
 
 copy/paste the content in the bin/include/lib folders from pcl_msgs/rclc/ue_msgs to plugindir/Win64ThirdParty/ros.
 
-# Basic information
+#### 7. Update the .uplugin and rclUE.Build.cs files (WIP)
 
-## Online documentation
+(WIP)
 
-https://rclUE.readthedocs.io/en/devel/
+#### 8. Place the rclUE folder into your Unreal Engine project's Plugins folder (WIP) and update its .uproject file
 
-## Supported versions
+(WIP)
 
-Main support
+#### 9. Perform a clean build (WIP)
 
-- Ubuntu 20.04
-- Unreal Engine 5.10
-- ROS2 Foxy
-- Clang: 13.0.1
+(WIP)
 
-Maintenance/experimental
+#### 10. Build and run the project (WIP)
 
-- Ubuntu 22.04 and ROS2 Humble(`UE5_devel_humble` branch)
-- Ubuntu 24.04 and ROS2 Humble(`UE5_devel_jazzy` branch)
+(WIP)
 
-Please download UE5.10 for Linux by following [Unreal Engine for Linux](https://www.unrealengine.com/en-US/linux)
+#### Troubleshooting (WIP)
 
-## Branches
+build fails, check log files in saved folder. search for "missing import" as a likely source of error.
 
-- `devel`: This build of the plugin is based on ROS2 Foxy and has been tested on Ubuntu 20 and UE5.10.
-- `UE5_devel_foxy`: Same as above.
-- `UE5_devel_humble_20.04`(experimental): This build of the plugin is based on ROS 2 humble and has been tested on Ubuntu 20.04 and UE5.1.
-- `UE5_devel_humble`(experimental): This build of the plugin is based on ROS 2 humble, Ubuntu 22.04 and UE5.1.
-- `UE5_devel_jazzy`(experimental): This build of the plugin is based on ROS 2 jazzy, Ubuntu 24.04 and UE5.1.
+### Known Issues (WIP)
 
-
-## TroubleShooting
-
-### Missing library
-Due to pre-compiled libraries, ThirdParty/ros/lib/librcl.so dynamically links libyaml.so and libspdlog.so.1, which needs to be provided by/installed on the host system. If not, Unreal fails to load the plugin or package the project without further details.
-
-On some operating systems, even with libyaml and libspdlog installed, the version appendix may not exist. You can try creating them using:
-
-```
-cd /lib64
-ln -s </path/to/libyaml.so.X.Y.Z> libyaml.so
-ln -s </path/to/libspdlog.so.X.Y.Z> libspdlog.so.1
-```
-
-# rclUE and ROS2
-
-## Description
-
-- We use ros2 'foxy' lightweighted (not all binaries are included). Source/ThirdParty/ros folder is fully autogenerated by [UE_tools](https://github.com/rapyuta-robotics/UE_tools)
-- ros includes [UE_msgs](https://github.com/rapyuta-robotics/UE_msgs)
-- UE uses centimeters but ROS uses meters. Please convert manually or use [URRConversionUtils](https://rapyutasimulationplugins.readthedocs.io/en/devel/doxygen_generated/html/d4/dc1/class_u_r_r_conversion_utils.html) in [RapyutaSimulationPlugins](https://rapyutasimulationplugins.readthedocs.io/en/devel/index.html)
-- within the Unreal Editor: Edit->Plugins, search and enable for `rclc`
-
-## Windows is currently unsupported
-
-# Getting Started
-
-The plugin folder contains a video "Example_BP_PubSub.mp4" demonstrating how to setup a PubSub example in Blueprint.
-
-An example setup using this plugin can be found at [turtlebot3-UE](https://github.com/rapyuta-robotics/turtlebot3-UE)
-
-# Notes on working with ROS 2 and UE
-
-- rcl and void\* types cannot be managed by UE (no UPROPERTY) and therefore can't be used directly in Blueprint. Whenever access to these variables is needed, the user should write a class to wrap it and all of their handling must be done in C++.
-- some basic numerical types are not natively supported in Blueprint (e.g. double, unsigned int). In order to use these, a workaround is needed (a plugin implementing those types for BP, a modified UE or a custom implementation).
-- In autogenerated messages, the method MsgToString() should be implemented by the user as its current purpose is to help debugging.
-
-# How to update ROS inside RclUE
-
-Currently there is a scripts in [UE_tools](https://github.com/rapyuta-robotics/UE_tools) to automatically build and update ROS2 libraries. Please follow [steps](https://github.com/rapyuta-robotics/UE_tools#general-usage)
-
-# Add CustomMsg in rclUE or other Plugins
-Please check [CustomMsgExample](https://github.com/yuokamoto/rclUE-Examples/blob/custom_msg_example/Plugins/CustomMsgExample/README.md) as a example of custom msg in different plugin then rclUE.
-
-
-# Install pre-commit
-
-Please install pre-commit before commiting your changes.
-Follow this instruction https://pre-commit.com/
-
-then run
-
-```bash
-pre-commit install
-```
-
-# Documentation
-
-## Tools
-
-documentation is built with three tools
-
-- [doxygen](http://www.doxygen.org)
-- [sphinx](http://www.sphinx-doc.org)
-- [breathe](https://breathe.readthedocs.io)
-
-## Locally build
-
-1. install tools in #tools section.
-2. build
-   ```
-   cd docs
-   make --always-make html
-   ```
-3. Open following in your browser.
-   - Sphinx at `file:///<path to cloned repo>/docs/source/_readthedocs/html/index.html`
-   - Original doxygen output at `file:///<path to cloned repo>/docs/source/_readthedocs/html/doxygen_generated/html/index.html`
-
-# Maintainer
-
-yu.okamoto@rapyuta-robotics.com
+with the way the current rclUE.Build.cs file is set up, the project must first be compiled in Shipping, then run in any other configuration. this is because of how windows handles external dlls, this is WIP.
