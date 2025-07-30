@@ -49,6 +49,10 @@ Intermediate/*
 # Whitelist Linux plugin libs
 !ThirdParty/**/*.so
 
+# Whitelist Win64 plugin libs/dlls
+!Win64ThirdParty/**/*.lib
+!Win64ThirdParty/**/*.dll
+
 *_BuiltData.uasset
 
 _readthedocs
