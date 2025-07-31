@@ -15,7 +15,7 @@ public class rclUE : ModuleRules
 
 	private string Win64RosPath
 	{
-		get { return Path.Combine(ModuleDirectory, "..", "..", "Win64ThirdParty", "ros"); }
+		get { return Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "Win64", "ros"); }
 	}
 
 	private void AddModule(string InModulePath, bool bInCopySharedLibsToOutputDir = false)
