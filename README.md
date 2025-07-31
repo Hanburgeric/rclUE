@@ -105,14 +105,14 @@ rclUE_ws
         ├── include
         ├── lib
         └── share
-    ├── ...
+    ├── ...(rclc, ue_msgs, etc.)...
 ├── log
 ├── source
 ```
 
 Copy the appropriate build artifacts to the plugin directory once more.
 
-If all has gone well, then the plugin is now ready for use.
+If all has gone well, the plugin should now be ready for use.
 
 #### Troubleshooting
 
