@@ -81,7 +81,7 @@ public class rclUE : ModuleRules
         }
 
         // Import libraries; no need to add public/private runtime library paths here,
-        // as this is irrelevant on Windows (i.e. Windows executables do not have an rpath analogue)
+        // as this is irrelevant on Windows (i.e. Windows executables do not use an rpath analogue)
         string libPath = Path.Combine(InModulePath, "lib");
         if (Directory.Exists(libPath))
         {
@@ -116,6 +116,16 @@ public class rclUE : ModuleRules
                 else
                 {
                     RuntimeDependencies.Add(dll, StagedFileType.NonUFS);
+                }
+
+                // Again, due to the lack of an rpath analogue on Windows executables,
+                // it is necessary to move the DLLs manually to a directory where
+                // they will be detected by the OS (e.g. next to the executable);
+                // this allows Editor builds to run without having to first be built
+                // as a game (i.e. DebugGame, Development, Shipping)
+                if (Target.Type == TargetType.Editor)
+                {
+                    RuntimeDependencies.Add(Path.Combine("$(ProjectDir)", "Binaries", "Win64", Path.GetFileName(dll)), dll, StagedFileType.NonUFS);
                 }
             }
         }
