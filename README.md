@@ -2,7 +2,7 @@
 
 This repository is a personal fork of [rclUE](https://github.com/rapyuta-robotics/rclUE), a ROS 2 ↔ Unreal Engine integration plugin originally developed by [Rapyuta Robotics](https://github.com/rapyuta-robotics).
 
-The goal of this fork is to enable the use of the plugin on Windows. While support for ROS 2 is more robust on Linux than it is on Windows, there exist valid reasons for wanting or needing to develop on Windows ([#94](https://github.com/rapyuta-robotics/rclUE/issues/94)).
+The goal of this fork is to enable use of the plugin on Windows. While support for ROS 2 is more robust on Linux than it is on Windows, there exist valid reasons for wanting or needing to develop on Windows ([#94](https://github.com/rapyuta-robotics/rclUE/issues/94)).
 
 Given the lack of public solutions, I have adapted the plugin for my own development needs and am sharing the results for those facing similar constraints.
 
@@ -63,7 +63,7 @@ You may choose to copy the folders in their entirety for convenience, or just th
 Additionally, add `yaml.dll` and `yaml.lib`–they are not present in the upstream plugin but are required for a successful Windows build.
 
 #### 4. Build and add missing libraries
-Depending on your ROS 2 installation, some packages expected by the plugin may be absent. ForROS 2 Humble, the typical suspects are:
+Depending on your ROS 2 installation, some packages expected by the plugin may be absent. For ROS 2 Humble, the typical suspects are:
 - `pcl_msgs`
 - `rclc`
 - `ue_msgs`
