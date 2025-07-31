@@ -40,6 +40,7 @@ Before you begin, make sure the following tools are installed on your system:
 ```bash
 git clone https://github.com/rapyuta-robotics/rclUE.git
 cd rclUE
+
 git checkout UE5.5_devel_humble
 ```
 
@@ -47,6 +48,7 @@ git checkout UE5.5_devel_humble
 ```bash
 cd ThirdParty
 mkdir Win64\ros
+
 cd Win64\ros
 mkdir bin include lib
 ```
@@ -87,6 +89,8 @@ git clone https://github.com/rapyuta-robotics/UE_msgs.git
 # Make sure to checkout the correct branch
 cd rclc
 git checkout humble
+
+# Return to workspace directory for next step
 cd ..
 ```
 4. Build the workspace
@@ -116,7 +120,12 @@ If all has gone well, the plugin should now be ready for use.
 
 #### Troubleshooting
 
-In the case of `rclc`, your error message is likely to be something like this:
+The `colcon build` command may fail. To resolve this issue, you will need to consult the `stdout_stderr.log` file in the folder of the package that failed to build.
+
+For example, if `rclc` fails to build, then the relevant log will be located here:
+`<WORKSPACE_DIRECTORY>\src\rclc\log\build_<TIMESTAMP>\rclc\stdout_stderr.log`
+
+For `rclc`, your error message may look something like this:
 ```bash
 test_action_server.obj : error LNK2019: unresolved external symbol rclc_executor_add_action_server referenced in function "private: virtual void __cdecl Test_rclc_action_server_Test::TestBody(void)" (?TestBody@Test_rclc_action_server_Test@@EEAAXXZ) [C:\ros2\rclUE_ws\build\rclc\rclc_test.vcxproj]
 test_action_client.obj : error LNK2019: unresolved external symbol rclc_executor_add_action_client referenced in function "private: virtual void __cdecl Test_rclc_action_client_Test::TestBody(void)" (?TestBody@Test_rclc_action_client_Test@@EEAAXXZ) [C:\ros2\rclUE_ws\build\rclc\rclc_test.vcxproj]
@@ -129,17 +138,19 @@ In this case, you may apply the following fix:
 3. Above the function (before `rcl_ret_t`), add the following line: `RCLC_PUBLIC`.
 4. Repeat steps 2 and 3 with the `rclc_executor_add_action_server` function.
 
-Run `colcon build` again, and rclc should now build fine. You will be likely be informed that `rclc_examples` has failed to build, but you may ignore this, as the plugin only requires the core package (i.e. `rclc`).
+Run `colcon build` again, and `rclc` should now build successfully. You will be likely be informed that `rclc_examples` has failed to build, but you may ignore this, as the plugin only requires the core package (i.e. `rclc`).
+
+For other issues, you will need to consult the `stdout_stderr.log` specific to that package and troubleshoot on your own.
 
 #### 6. Update the `.uplugin` and `rclUE.Build.cs` files
 
 In the `.uplugin` file, add `Win64` to the section marked `WhitelistPlatforms`.
 
-In the `rclUE.Build.cs` file, add logic to detect and add the Windows libraries that you have added. If you're unsure how, feel free to reference the `rclUE.Build.cs` file from this repository, which does this.
+In the `rclUE.Build.cs` file, add the Windows libraries to the build process. If you're unsure how, feel free to reference the `rclUE.Build.cs` from this repository, which already does this.
 
-#### 7. Place the rclUE folder into your Unreal Engine project's Plugins folder and update its `.uproject` file
+#### 7. Place the `rclUE` folder into your Unreal Engine project's `Plugins` folder and update its `.uproject` file
 
-To the `Plugins` section of your project's `.uproject` file, add the following:
+Additionally, to the `Plugins` section of your project's `.uproject` file, add the following:
 ```bash
   {
     "Name": "rclUE",
@@ -157,10 +168,11 @@ Delete the following folders from your project directory (if they exist) to forc
 - Saved
 - <PROJECT_NAME>.sln
 
-Your project should now be ready to build and run!
+#### 9. Build and run your project
 
----
+Your project should now be ready to build and run!
 
 #### Additional troubleshooting
 
-If the project fails to build or run, check the `*.log` files in the `Saved` folder in the project directory for guidance on what to do. If the log contains the message `missing import`, then you've likely forgotten to add a `.lib`/`.dll` from somwhere.
+If your project fails to build or run, check the `*.log` files in the `Saved` folder of the project directory for guidance on what to do.
+If the log contains the message `missing import`, then you've forgotten to add that `.lib`/`.dll` to the plugin.
