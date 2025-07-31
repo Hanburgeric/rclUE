@@ -50,8 +50,8 @@ Intermediate/*
 !ThirdParty/**/*.so
 
 # Whitelist Win64 plugin libs/dlls
-!Win64ThirdParty/**/*.lib
-!Win64ThirdParty/**/*.dll
+!ThirdParty/Win64/**/*.lib
+!ThirdParty/Win64/**/*.dll
 
 *_BuiltData.uasset
 
