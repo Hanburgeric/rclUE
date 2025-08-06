@@ -122,7 +122,7 @@ DECLARE_DYNAMIC_DELEGATE_OneParam(FServiceCallback, UROS2GenericSrv*, InService 
  * @param InCallback convert to #FSubscriptionCallback and pass to #UROS2NodeComponent::CreateSubscriber
  * @param InQoS pass to #UROS2NodeComponent::CreateSubscriber
  */
-#define ROS2_CREATE_SUBSCRIBERW_WITH_QOS(InROS2Node, InUserObject, InTopicName, InMsgClass, InCallback, InQoS) \
+#define ROS2_CREATE_SUBSCRIBER_WITH_QOS(InROS2Node, InUserObject, InTopicName, InMsgClass, InCallback, InQoS) \
     if (ensure(IsValid(InROS2Node)))                                                                           \
     {                                                                                                          \
         FSubscriptionCallback cb;                                                                              \
@@ -754,3 +754,4 @@ private:
     UFUNCTION()
     void InvalidateWaitSet();
 };
+
